@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["public", "auth"]
+}
+
+model Client {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  projects  Project[] @relation("ClientProjects")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@schema("public")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  clientId  String
+  client    Client   @relation("ClientProjects", fields: [clientId], references: [id])
+  tasks     Task[]   @relation("ProjectTasks")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("public")
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  name      String
+  projectId String
+  project   Project  @relation("ProjectTasks", fields: [projectId], references: [id])
+  logs      Log[]    @relation("TaskLogs")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("public")
+}
+
+model Log {
+  id         String   @id @default(uuid())
+  hours      Float
+  userId     String
+  taskId     String
+  task       Task     @relation("TaskLogs", fields: [taskId], references: [id])
+  start_time DateTime @default(now())
+  end_time   DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@schema("public")
+}
